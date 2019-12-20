@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -40,9 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 	// 初始化存储目录
-	md5ctx := md5.New()
-	md5ctx.Write([]byte(s))
-	tempDir = fmt.Sprintf("%s/%s/%s", os.Getenv("HOME"), "Downloads", hex.EncodeToString(md5ctx.Sum(nil)))
+	tempDir = fmt.Sprintf("%s/%s/%s", os.Getenv("HOME"), "Downloads", out[:strings.LastIndex(out, ".")])
 	if !FileExist(tempDir) {
 		if err := os.Mkdir(tempDir, 0744); err != nil {
 			log.Fatalf("%s 创建失败", tempDir)
@@ -54,7 +50,7 @@ func main() {
 
 func ffmpeg(out string) {
 	downloadsDir := fmt.Sprintf("%s/Downloads", os.Getenv("HOME"))
-	command := fmt.Sprintf("cd %s && ffmpeg -i %d.m3u8 -c copy %s/%s", tempDir, m3u8Index, downloadsDir, out)
+	command := fmt.Sprintf("cd %s && ffmpeg -i %d.m3u8 -c copy -bsf:a aac_adtstoasc %s/%s", tempDir, m3u8Index, downloadsDir, out)
 	cmd := exec.Command("bash", "-c", command)
 	if err := cmd.Run(); err != nil {
 		log.Fatalf("%s\n执行失败, %s", command, err)
